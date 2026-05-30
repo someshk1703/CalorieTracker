@@ -31,7 +31,12 @@
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+- [ ] AI calls use backend proxy — no client-side API key exposure (Principle IV).
+- [ ] Nutritional data persisted locally before any network call (Principle II).
+- [ ] AI confidence threshold enforced; low-confidence results prompt user confirmation (Principle I).
+- [ ] Offline diary and macro rings render without network access (Principle II).
+- [ ] Tests written before implementation — TDD gate satisfied (Principle III).
+- [ ] Feature is independently deliverable without requiring other in-flight work (Principle V).
 
 ## Project Structure
 

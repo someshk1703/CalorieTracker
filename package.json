@@ -1,0 +1,38 @@
+{
+  "name": "calorie-tracker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "workspaces": [
+    "apps/mobile",
+    "services/api",
+    "packages/shared"
+  ],
+  "overrides": {
+    "react-native": "0.79.7"
+  },
+  "scripts": {
+    "dev:mobile": "npm --workspace apps/mobile run dev",
+    "dev:api": "npm --workspace services/api run dev",
+    "lint": "eslint .",
+    "test": "jest --config jest.config.ts",
+    "test:mobile": "npm --workspace apps/mobile run test",
+    "test:api": "npm --workspace services/api run test",
+    "test:contracts": "npm --workspace services/api run test:contracts",
+    "typecheck": "tsc -b --pretty false"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.28.0",
+    "@types/jest": "^29.5.14",
+    "eslint": "^9.28.0",
+    "jest": "^29.7.0",
+    "prettier": "^3.5.3",
+    "ts-jest": "^29.3.4",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.33.0"
+  }
+}
