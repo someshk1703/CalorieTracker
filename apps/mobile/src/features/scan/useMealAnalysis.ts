@@ -23,12 +23,23 @@ export function useMealAnalysis(token: string | null) {
       setState({ status: "loading" });
       try {
         const apiClient = createApiClient({ baseUrl: apiBaseUrl, getToken: () => token });
+        const body = localImageUri ? new FormData() : undefined;
+        if (body) {
+          body.append("sourceMethod", sourceMethod);
+          body.append("localRequestId", `local-${Date.now()}`);
+          body.append("userConsentedToBackup", "false");
+          body.append("userConsentedToShare", "false");
+          body.append("image", { uri: localImageUri, name: "meal.jpg", type: "image/jpeg" } as unknown as Blob);
+        }
+
         const response = await apiClient.request<unknown>(API_ROUTES.analyzeMeal, {
           method: "POST",
-          body: JSON.stringify({
-            sourceMethod,
-            localRequestId: localImageUri ? `local-${Date.now()}` : undefined
-          })
+          body:
+            body ??
+            JSON.stringify({
+              sourceMethod,
+              localRequestId: `local-${Date.now()}`
+            })
         });
         const result = foodDetectionResultSchema.parse(response);
         setState({ status: "succeeded", result });

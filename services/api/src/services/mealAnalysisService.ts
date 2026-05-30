@@ -8,12 +8,13 @@ import {
   type SourceMethod
 } from "@calorie-tracker/shared";
 import { randomUUID } from "crypto";
-import { MockAiVisionProvider, type AiVisionProvider } from "./aiVisionProvider";
+import { createAiVisionProvider, type AiVisionProvider } from "./aiVisionProvider";
 import { MockNutritionProvider, type NutritionProvider } from "./nutritionProvider";
 
 export interface AnalyzeMealInput {
   userId: string;
   sourceMethod: SourceMethod;
+  image?: Buffer;
   userConsentedToBackup: boolean;
   userConsentedToShare: boolean;
 }
@@ -31,13 +32,13 @@ export interface MealAnalysisResponse {
 
 export class MealAnalysisService {
   constructor(
-    private readonly aiVisionProvider: AiVisionProvider = new MockAiVisionProvider(),
+    private readonly aiVisionProvider: AiVisionProvider = createAiVisionProvider(),
     private readonly nutritionProvider: NutritionProvider = new MockNutritionProvider()
   ) {}
 
   async analyzeMeal(input: AnalyzeMealInput): Promise<MealAnalysisResponse> {
     const vision = await this.aiVisionProvider.analyzeImage({
-      image: Buffer.alloc(0),
+      image: input.image ?? Buffer.alloc(0),
       sourceMethod: input.sourceMethod === "manual_correction" ? "camera" : input.sourceMethod
     });
     const nutrition = await this.resolveNutrition(vision.detectedFoods, 1);

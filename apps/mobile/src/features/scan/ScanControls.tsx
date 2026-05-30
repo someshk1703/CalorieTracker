@@ -22,6 +22,12 @@ export function ScanControls({ mode, onModeChange, onCapture, onImport, disabled
         >
           <Text style={[styles.segmentText, mode === "camera" && styles.activeSegmentText]}>Camera</Text>
         </Pressable>
+        <View style={styles.segment}>
+          <Text style={styles.segmentText}>Barcode</Text>
+        </View>
+        <View style={styles.segment}>
+          <Text style={styles.segmentText}>Food Label</Text>
+        </View>
         <Pressable
           accessibilityLabel="Use photo import mode"
           disabled={disabled}
@@ -56,15 +62,15 @@ export function FoodLabelOverlay({ labels }: { labels: string[] }) {
 const styles = StyleSheet.create({
   activeSegment: { backgroundColor: "#111827" },
   activeSegmentText: { color: "#FFFFFF" },
-  container: { gap: 12, padding: 16 },
+  container: { backgroundColor: "#111827", gap: 12, padding: 16 },
   disabledAction: { opacity: 0.55 },
   overlay: { gap: 8, position: "absolute", top: 24, left: 24 },
-  overlayLabel: { backgroundColor: "#111827", color: "#FFFFFF", paddingHorizontal: 10, paddingVertical: 6 },
-  primaryAction: { alignItems: "center", backgroundColor: "#16A34A", padding: 14 },
-  primaryActionText: { color: "#FFFFFF", fontWeight: "700" },
-  secondaryAction: { alignItems: "center", borderColor: "#CBD5E1", borderWidth: 1, padding: 14 },
-  secondaryActionText: { color: "#0F172A", fontWeight: "600" },
-  segment: { flex: 1, alignItems: "center", padding: 10 },
-  segmentedControl: { borderColor: "#CBD5E1", borderWidth: 1, flexDirection: "row" },
-  segmentText: { color: "#0F172A", fontWeight: "600" }
+  overlayLabel: { backgroundColor: "#FFFFFF", borderRadius: 18, color: "#17131F", fontWeight: "900", paddingHorizontal: 14, paddingVertical: 8 },
+  primaryAction: { alignItems: "center", alignSelf: "center", backgroundColor: "#FFFFFF", borderRadius: 34, height: 68, justifyContent: "center", padding: 14, width: 68 },
+  primaryActionText: { color: "#17131F", fontWeight: "900" },
+  secondaryAction: { alignItems: "center", alignSelf: "center", borderColor: "rgba(255,255,255,0.22)", borderRadius: 18, borderWidth: 1, paddingHorizontal: 18, paddingVertical: 10 },
+  secondaryActionText: { color: "#FFFFFF", fontWeight: "800" },
+  segment: { alignItems: "center", borderRadius: 16, flex: 1, padding: 10 },
+  segmentedControl: { backgroundColor: "rgba(255,255,255,0.12)", borderRadius: 20, flexDirection: "row", gap: 6, padding: 6 },
+  segmentText: { color: "#FFFFFF", fontSize: 12, fontWeight: "800" }
 });

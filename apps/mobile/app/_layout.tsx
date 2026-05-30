@@ -5,6 +5,7 @@ export default function RootLayout() {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="(tabs)" />
       <Stack.Screen name="meal-results" />
+      <Stack.Screen name="compare-transformation" />
     </Stack>
   );
 }

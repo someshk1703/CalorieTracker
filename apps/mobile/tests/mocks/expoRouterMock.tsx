@@ -21,6 +21,10 @@ export function Redirect({ href }: { href: string }) {
   return React.createElement("Redirect", { href });
 }
 
+export function Link({ children, href }: { children?: React.ReactNode; href: string }) {
+  return React.createElement("Link", { href }, children);
+}
+
 export function useLocalSearchParams() {
   return {};
 }

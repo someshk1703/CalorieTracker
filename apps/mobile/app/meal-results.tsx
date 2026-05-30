@@ -64,8 +64,10 @@ export default function NutritionResultsScreen() {
       <View style={styles.imagePreview}>
         {imageUri ? <Image source={{ uri: imageUri }} style={styles.image} /> : <Text style={styles.imageText}>{mealName}</Text>}
       </View>
-      <Text style={styles.title}>Nutrition Results</Text>
-      <Text style={styles.metric}>{totals.calories} calories</Text>
+      <View style={styles.sheet}>
+      <Text style={styles.time}>6:21 PM</Text>
+      <Text style={styles.title}>{mealName}</Text>
+      <View style={styles.calorieHero}><Text style={styles.metricLabel}>Calories</Text><Text style={styles.metric}>{totals.calories}</Text></View>
       <View style={styles.macroRow}>
         <Text style={styles.macro}>Protein {totals.proteinGrams}g</Text>
         <Text style={styles.macro}>Carbs {totals.carbGrams}g</Text>
@@ -91,19 +93,22 @@ export default function NutritionResultsScreen() {
         </Pressable>
       </View>
       {savedState === "saved" ? <Text style={styles.savedText}>Saved locally</Text> : null}
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   actionRow: { flexDirection: "row", gap: 12 },
-  container: { backgroundColor: "#F8FAFC", gap: 18, padding: 20 },
+  calorieHero: { backgroundColor: "#FFFFFF", borderRadius: 22, elevation: 4, marginVertical: 12, padding: 18, shadowColor: "#17131F", shadowOpacity: 0.1, shadowRadius: 18 },
+  container: { backgroundColor: "#F8FAFC", flex: 1 },
   image: { height: "100%", width: "100%" },
-  imagePreview: { alignItems: "center", backgroundColor: "#111827", height: 180, justifyContent: "center" },
+  imagePreview: { alignItems: "center", backgroundColor: "#111827", height: 330, justifyContent: "center" },
   imageText: { color: "#FFFFFF", fontSize: 24, fontWeight: "700" },
   macro: { color: "#334155", fontWeight: "700" },
   macroRow: { flexDirection: "row", justifyContent: "space-between" },
-  metric: { color: "#111827", fontSize: 28, fontWeight: "800" },
+  metric: { color: "#111827", fontSize: 38, fontWeight: "900" },
+  metricLabel: { color: "#8A8591", fontWeight: "800" },
   primaryAction: { alignItems: "center", backgroundColor: "#16A34A", flex: 1, padding: 14 },
   primaryActionText: { color: "#FFFFFF", fontWeight: "800" },
   prompt: { color: "#B45309", fontWeight: "600" },
@@ -111,7 +116,9 @@ const styles = StyleSheet.create({
   secondaryAction: { alignItems: "center", borderColor: "#94A3B8", borderWidth: 1, flex: 1, padding: 14 },
   secondaryActionText: { color: "#0F172A", fontWeight: "800" },
   servings: { color: "#111827", fontWeight: "700" },
+  sheet: { backgroundColor: "#FAF9F7", borderTopLeftRadius: 28, borderTopRightRadius: 28, gap: 16, marginTop: -28, padding: 20 },
   stepper: { alignItems: "center", flexDirection: "row", gap: 20 },
   stepperButton: { color: "#111827", fontSize: 24, fontWeight: "900", padding: 8 },
+  time: { color: "#8A8591", fontWeight: "800" },
   title: { color: "#111827", fontSize: 20, fontWeight: "800" }
 });
