@@ -13,6 +13,7 @@ export const Text = createHostComponent("Text");
 export const Pressable = createHostComponent("Pressable");
 export const TextInput = createHostComponent("TextInput");
 export const ScrollView = createHostComponent("ScrollView");
+export const Image = createHostComponent("Image");
 
 export const StyleSheet = {
   create: <T extends Record<string, unknown>>(styles: T): T => styles,

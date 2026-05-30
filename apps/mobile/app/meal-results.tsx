@@ -1,31 +1,49 @@
-import { applyServingMultiplier, foodDetectionResultFixture } from "@calorie-tracker/shared";
+import { applyServingMultiplier, foodDetectionResultFixture, foodDetectionResultSchema, type FoodDetectionResultResponse } from "@calorie-tracker/shared";
+import { useLocalSearchParams } from "expo-router";
 import { useMemo, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { createPendingMealEntry, saveMealEntryOnce } from "../src/features/diary/saveMealEntry";
 import { CorrectionForm } from "../src/features/scan/CorrectionForm";
 
+function getAnalysisFromParams(value: string | string[] | undefined): FoodDetectionResultResponse | null {
+  const rawValue = Array.isArray(value) ? value[0] : value;
+  if (!rawValue) {
+    return null;
+  }
+
+  try {
+    return foodDetectionResultSchema.parse(JSON.parse(rawValue));
+  } catch {
+    return null;
+  }
+}
+
 export default function NutritionResultsScreen() {
+  const params = useLocalSearchParams<{ analysis?: string; imageUri?: string; sourceMethod?: "camera" | "photo_import" }>();
+  const analysis = getAnalysisFromParams(params.analysis);
+  const imageUri = Array.isArray(params.imageUri) ? params.imageUri[0] : params.imageUri;
   const [servings, setServings] = useState(1);
   const [isCorrecting, setIsCorrecting] = useState(false);
-  const [mealName, setMealName] = useState("Caesar Salad");
+  const [mealName, setMealName] = useState(analysis?.mealName ?? foodDetectionResultFixture.detectedFoods[0]?.label ?? "Scanned Meal");
   const [savedState, setSavedState] = useState<"idle" | "saved">("idle");
   const baseNutrition = {
-    calories: foodDetectionResultFixture.estimatedCalories,
-    proteinGrams: foodDetectionResultFixture.estimatedProteinGrams,
-    carbGrams: foodDetectionResultFixture.estimatedCarbGrams,
-    fatGrams: foodDetectionResultFixture.estimatedFatGrams
+    calories: analysis?.nutrition.calories ?? foodDetectionResultFixture.estimatedCalories,
+    proteinGrams: analysis?.nutrition.proteinGrams ?? foodDetectionResultFixture.estimatedProteinGrams,
+    carbGrams: analysis?.nutrition.carbGrams ?? foodDetectionResultFixture.estimatedCarbGrams,
+    fatGrams: analysis?.nutrition.fatGrams ?? foodDetectionResultFixture.estimatedFatGrams
   };
   const totals = useMemo(() => applyServingMultiplier(baseNutrition, servings), [servings]);
+  const detectedFoods = analysis?.detectedFoods ?? foodDetectionResultFixture.detectedFoods;
 
   async function saveResult() {
     const pendingMeal = createPendingMealEntry({
       userId: foodDetectionResultFixture.userId,
-      analysisId: foodDetectionResultFixture.id,
+      analysisId: analysis?.analysisId ?? foodDetectionResultFixture.id,
       mealName,
       servings,
       nutrition: {
         ...totals,
-        ingredients: foodDetectionResultFixture.detectedFoods.map((food) => ({
+        ingredients: detectedFoods.map((food) => ({
           label: food.label,
           calories: totals.calories,
           proteinGrams: totals.proteinGrams,
@@ -35,7 +53,7 @@ export default function NutritionResultsScreen() {
         })),
         sourceBreakdown: { databaseMatchedCount: 1, aiFallbackCount: 0 }
       },
-      localImageUri: "file:///meal_001.jpg"
+      localImageUri: imageUri ?? "file:///meal_001.jpg"
     });
     await saveMealEntryOnce(pendingMeal, async (meal) => meal);
     setSavedState("saved");
@@ -44,7 +62,7 @@ export default function NutritionResultsScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.imagePreview}>
-        <Text style={styles.imageText}>{mealName}</Text>
+        {imageUri ? <Image source={{ uri: imageUri }} style={styles.image} /> : <Text style={styles.imageText}>{mealName}</Text>}
       </View>
       <Text style={styles.title}>Nutrition Results</Text>
       <Text style={styles.metric}>{totals.calories} calories</Text>
@@ -62,7 +80,7 @@ export default function NutritionResultsScreen() {
           <Text style={styles.stepperButton}>+</Text>
         </Pressable>
       </View>
-      {foodDetectionResultFixture.requiresConfirmation ? <Text style={styles.prompt}>Confirm this estimate before saving.</Text> : null}
+      {(analysis?.requiresConfirmation ?? foodDetectionResultFixture.requiresConfirmation) ? <Text style={styles.prompt}>Confirm this estimate before saving.</Text> : null}
       {isCorrecting ? <CorrectionForm initialMealName={mealName} onSubmit={(value) => { setMealName(value); setIsCorrecting(false); }} /> : null}
       <View style={styles.actionRow}>
         <Pressable onPress={() => setIsCorrecting(true)} style={styles.secondaryAction}>
@@ -80,6 +98,7 @@ export default function NutritionResultsScreen() {
 const styles = StyleSheet.create({
   actionRow: { flexDirection: "row", gap: 12 },
   container: { backgroundColor: "#F8FAFC", gap: 18, padding: 20 },
+  image: { height: "100%", width: "100%" },
   imagePreview: { alignItems: "center", backgroundColor: "#111827", height: 180, justifyContent: "center" },
   imageText: { color: "#FFFFFF", fontSize: 24, fontWeight: "700" },
   macro: { color: "#334155", fontWeight: "700" },
