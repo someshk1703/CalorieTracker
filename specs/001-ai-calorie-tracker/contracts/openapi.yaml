@@ -1,0 +1,367 @@
+openapi: 3.1.0
+info:
+  title: AI Calorie Tracker API Proxy
+  version: 0.1.0
+  description: Backend proxy contracts for AI meal analysis, nutrition resolution, explicit sharing, media deletion, and privacy export.
+servers:
+  - url: https://api.example.com
+    description: Production placeholder
+security:
+  - bearerAuth: []
+paths:
+  /v1/analyze-meal:
+    post:
+      summary: Analyze a meal image and return confidence-gated nutrition estimates
+      operationId: analyzeMeal
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - image
+                - sourceMethod
+              properties:
+                image:
+                  type: string
+                  format: binary
+                  description: Transient meal image; discarded after inference unless explicit opt-in applies.
+                sourceMethod:
+                  type: string
+                  enum: [camera, photo_import]
+                localRequestId:
+                  type: string
+                  description: Mobile-generated idempotency key for duplicate submit prevention.
+                userConsentedToBackup:
+                  type: boolean
+                  default: false
+                userConsentedToShare:
+                  type: boolean
+                  default: false
+      responses:
+        "200":
+          description: Meal analysis succeeded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FoodDetectionResult"
+        "400":
+          description: Invalid image or request metadata
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+        "408":
+          description: AI provider timeout
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "502":
+          description: AI or nutrition provider failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /v1/nutrition/resolve:
+    post:
+      summary: Resolve detected foods against nutrition database and AI fallback estimates
+      operationId: resolveNutrition
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - detectedFoods
+              properties:
+                detectedFoods:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/DetectedFood"
+                servings:
+                  type: number
+                  minimum: 0.01
+                  default: 1
+      responses:
+        "200":
+          description: Nutrition resolved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NutritionEstimate"
+        "401":
+          description: Authentication required
+        "422":
+          description: Could not resolve enough nutrition data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /v1/meals/share:
+    post:
+      summary: Explicitly share a confirmed meal to a selected group
+      operationId: shareMeal
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - localMealId
+                - groupId
+                - explicitConsent
+              properties:
+                localMealId:
+                  type: string
+                groupId:
+                  type: string
+                caption:
+                  type: string
+                  maxLength: 280
+                explicitConsent:
+                  type: boolean
+                  const: true
+                includePhoto:
+                  type: boolean
+                  default: false
+                includeNutrition:
+                  type: boolean
+                  default: true
+      responses:
+        "201":
+          description: Community post created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityPost"
+        "401":
+          description: Authentication required
+        "403":
+          description: User cannot post to selected group
+  /v1/progress/share:
+    post:
+      summary: Explicitly share progress or transformation comparison to a selected group
+      operationId: shareProgress
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - sourceId
+                - sourceType
+                - groupId
+                - explicitConsent
+              properties:
+                sourceId:
+                  type: string
+                sourceType:
+                  type: string
+                  enum: [progress_point, transformation_pair]
+                groupId:
+                  type: string
+                explicitConsent:
+                  type: boolean
+                  const: true
+                hideWeight:
+                  type: boolean
+                  default: true
+      responses:
+        "201":
+          description: Community post created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityPost"
+        "401":
+          description: Authentication required
+        "403":
+          description: User cannot post to selected group
+  /v1/media/{mediaId}:
+    delete:
+      summary: Delete opt-in cloud/shared media
+      operationId: deleteMedia
+      parameters:
+        - name: mediaId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Media deleted
+        "401":
+          description: Authentication required
+        "404":
+          description: Media not found or not owned by user
+  /v1/privacy/export:
+    get:
+      summary: Export user-owned account, diary, sharing, and privacy metadata
+      operationId: exportPrivacyData
+      responses:
+        "200":
+          description: User data export
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [userProfile, meals, communityPosts, transformationPairs]
+                properties:
+                  userProfile:
+                    type: object
+                  meals:
+                    type: array
+                    items:
+                      type: object
+                  communityPosts:
+                    type: array
+                    items:
+                      type: object
+                  transformationPairs:
+                    type: array
+                    items:
+                      type: object
+        "401":
+          description: Authentication required
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    DetectedFood:
+      type: object
+      required: [label, estimatedPortion, confidence]
+      properties:
+        label:
+          type: string
+        estimatedPortion:
+          type: string
+        confidence:
+          type: number
+          minimum: 0
+          maximum: 1
+        anchor:
+          type: object
+          properties:
+            x:
+              type: number
+            y:
+              type: number
+    NutritionEstimate:
+      type: object
+      required: [calories, proteinGrams, carbGrams, fatGrams, sourceBreakdown]
+      properties:
+        calories:
+          type: number
+          minimum: 0
+        proteinGrams:
+          type: number
+          minimum: 0
+        carbGrams:
+          type: number
+          minimum: 0
+        fatGrams:
+          type: number
+          minimum: 0
+        ingredients:
+          type: array
+          items:
+            type: object
+            required: [label, calories, proteinGrams, carbGrams, fatGrams, source]
+            properties:
+              label:
+                type: string
+              calories:
+                type: number
+              proteinGrams:
+                type: number
+              carbGrams:
+                type: number
+              fatGrams:
+                type: number
+              source:
+                type: string
+                enum: [database, ai_fallback, user_corrected]
+              databaseProviderId:
+                type: string
+        sourceBreakdown:
+          type: object
+          properties:
+            databaseMatchedCount:
+              type: integer
+              minimum: 0
+            aiFallbackCount:
+              type: integer
+              minimum: 0
+    FoodDetectionResult:
+      type: object
+      required:
+        - analysisId
+        - detectedFoods
+        - nutrition
+        - confidence
+        - requiresConfirmation
+        - status
+      properties:
+        analysisId:
+          type: string
+        mealName:
+          type: string
+        detectedFoods:
+          type: array
+          items:
+            $ref: "#/components/schemas/DetectedFood"
+        nutrition:
+          $ref: "#/components/schemas/NutritionEstimate"
+        confidence:
+          type: number
+          minimum: 0
+          maximum: 1
+        requiresConfirmation:
+          type: boolean
+          description: Must be true when confidence is less than or equal to 0.5.
+        status:
+          type: string
+          enum: [succeeded, failed, timed_out]
+        expiresAt:
+          type: string
+          format: date-time
+    CommunityPost:
+      type: object
+      required: [id, groupId, visibilityState, createdAt]
+      properties:
+        id:
+          type: string
+        groupId:
+          type: string
+        sourceType:
+          type: string
+          enum: [meal, progress, transformation]
+        nutritionSummary:
+          $ref: "#/components/schemas/NutritionEstimate"
+        visibilityState:
+          type: string
+          enum: [group_shared, removed]
+        createdAt:
+          type: string
+          format: date-time
+    ErrorResponse:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        retryable:
+          type: boolean
+          default: false
