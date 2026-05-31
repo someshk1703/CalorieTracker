@@ -1,9 +1,10 @@
-import { applyServingMultiplier, foodDetectionResultFixture, foodDetectionResultSchema, type FoodDetectionResultResponse } from "@calorie-tracker/shared";
+import { API_ROUTES, applyServingMultiplier, foodDetectionResultFixture, foodDetectionResultSchema, type FoodDetectionResultResponse } from "@calorie-tracker/shared";
 import { useLocalSearchParams } from "expo-router";
 import { useMemo, useState } from "react";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { createPendingMealEntry, saveMealEntryOnce } from "../src/features/diary/saveMealEntry";
 import { CorrectionForm } from "../src/features/scan/CorrectionForm";
+import { createApiClient } from "../src/services/apiClient";
 
 function getAnalysisFromParams(value: string | string[] | undefined): FoodDetectionResultResponse | null {
   const rawValue = Array.isArray(value) ? value[0] : value;
@@ -17,6 +18,8 @@ function getAnalysisFromParams(value: string | string[] | undefined): FoodDetect
     return null;
   }
 }
+
+const apiBaseUrl = process.env.EXPO_PUBLIC_API_BASE_URL ?? "http://localhost:3000";
 
 export default function NutritionResultsScreen() {
   const params = useLocalSearchParams<{ analysis?: string; imageUri?: string; sourceMethod?: "camera" | "photo_import" }>();
@@ -55,7 +58,18 @@ export default function NutritionResultsScreen() {
       },
       localImageUri: imageUri ?? "file:///meal_001.jpg"
     });
-    await saveMealEntryOnce(pendingMeal, async (meal) => meal);
+    await saveMealEntryOnce(pendingMeal, async (meal) => {
+      try {
+        const apiClient = createApiClient({ baseUrl: apiBaseUrl, getToken: () => "test-token" });
+        const response = await apiClient.request<{ syncState: "synced" | "local_only" }>(API_ROUTES.mealEntries, {
+          method: "POST",
+          body: JSON.stringify(meal)
+        });
+        return { ...meal, syncState: response.syncState };
+      } catch {
+        return meal;
+      }
+    });
     setSavedState("saved");
   }
 

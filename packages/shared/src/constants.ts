@@ -10,6 +10,7 @@ export const MACRO_UNITS = {
 
 export const API_ROUTES = {
   analyzeMeal: "/v1/analyze-meal",
+  mealEntries: "/v1/meals",
   resolveNutrition: "/v1/nutrition/resolve",
   shareMeal: "/v1/meals/share",
   shareProgress: "/v1/progress/share",

@@ -9,7 +9,7 @@ import {
 } from "@calorie-tracker/shared";
 import { randomUUID } from "crypto";
 import { createAiVisionProvider, type AiVisionProvider } from "./aiVisionProvider";
-import { MockNutritionProvider, type NutritionProvider } from "./nutritionProvider";
+import { createNutritionProvider, type NutritionProvider } from "./nutritionProvider";
 
 export interface AnalyzeMealInput {
   userId: string;
@@ -33,7 +33,7 @@ export interface MealAnalysisResponse {
 export class MealAnalysisService {
   constructor(
     private readonly aiVisionProvider: AiVisionProvider = createAiVisionProvider(),
-    private readonly nutritionProvider: NutritionProvider = new MockNutritionProvider()
+    private readonly nutritionProvider: NutritionProvider = createNutritionProvider()
   ) {}
 
   async analyzeMeal(input: AnalyzeMealInput): Promise<MealAnalysisResponse> {
