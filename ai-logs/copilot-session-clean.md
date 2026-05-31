@@ -173,3 +173,95 @@ Give me clean AI logs from this session and create a plan for demo artifacts. Sh
 ## Response
 
 Created this sanitized AI log in `ai-logs/copilot-session-clean.md`. Credentials were redacted, tool noise was condensed, and the log keeps clear `## Prompt` / `## Response` sections for contest review. Also created a repo-level demo artifact plan so screenshots, Loom link, and reflection can be organized cleanly for submission.
+
+---
+
+## Prompt
+
+Expo Go showed compatibility/runtime issues and a parser error around React Native `VirtualView.js`.
+
+## Response
+
+Investigated workspace dependency drift and found conflicting React Native/React packages between root and mobile workspace. Aligned Expo SDK 53 compatible versions, added missing native peer packages, and ensured Metro/Jest resolved consistent React and renderer versions. Also updated mobile Jest module mapping to avoid duplicate React instances in tests.
+
+Validated by running typecheck/tests/lint and Android bundle export. The parser error path was eliminated and Metro bundled successfully.
+
+---
+
+## Prompt
+
+The app looked incomplete and scanning was not real-time. Requested camera access flow, better UI, and full reference-screen fidelity.
+
+## Response
+
+Implemented a real capture/import scan flow in mobile:
+
+- Camera permission handling and live camera preview
+- Gallery import via image picker
+- Capture/import image handoff into analysis flow
+- Navigation to Nutrition Results with analysis payload and image URI
+- Results screen updated to use scan payload/image
+- Router cleanup and missing route fixes
+
+Then added polished mock-data screens aligned to provided references:
+
+- Home dashboard
+- Progress
+- Community/groups feed
+- Profile
+- Compare transformation
+
+Kept scan and results as the primary contest-critical flow while preserving test stability.
+
+---
+
+## Prompt
+
+Use real AI through the existing API service and integrate Supabase for persistence.
+
+## Response
+
+Extended the API and mobile contract:
+
+- Analyze-meal route now supports multipart image upload
+- OpenAI Vision provider integrated for real image analysis when key is present
+- AI nutrition resolver added for ingredient-level macro estimates
+- New `POST /v1/meals` route added for optional cloud sync
+- Supabase meal store added (service-role server-side only)
+- Supabase schema migration created under `supabase/migrations/`
+- Mobile save flow remains local-first but attempts API sync and uses fallback on failure
+
+Added contract test coverage for meal sync behavior when Supabase is not configured.
+
+Validation passed:
+
+```text
+npm run typecheck
+npm test -- --runInBand
+npm run lint
+```
+
+---
+
+## Prompt
+
+Asked whether Gemini Vision can be used along with OpenAI.
+
+## Response
+
+Implemented dual-provider vision support:
+
+- Added Gemini Vision provider integration
+- Added `AI_VISION_PROVIDER` selector (`openai`, `gemini`, `auto`)
+- Added auto fallback chain when multiple provider keys exist
+- Updated API env template for Gemini/OpenAI configuration
+
+Validated end to end with typecheck, tests, and lint after the change.
+
+---
+
+## Notes
+
+- All sensitive values remain excluded from this log.
+- Environment variables and provider keys were represented only by variable names.
+- The session preserved local-first behavior so app demos remain functional without cloud dependency, while enabling cloud-backed and multi-model AI paths when configured.
